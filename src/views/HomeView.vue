@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import {
   AllCommunityModule,
   type CellClassParams,
+  type ColDef,
   ModuleRegistry,
   type ValueFormatterParams,
 } from 'ag-grid-community'
@@ -34,7 +35,7 @@ const items: TreeItem[] = [
 const itemsInit = new TreeStore(items)
 rowData.value = itemsInit.getArr()
 console.log('getTree', itemsInit.getArr())
-const colDefs = ref([
+const colDefs = ref<ColDef<TreeItemForAgGrid>[]>([
   {
     field: 'id',
     headerName: '№ п/п',
@@ -42,9 +43,7 @@ const colDefs = ref([
     headerClass: 'font-bold',
     cellClass: 'font-bold',
     valueFormatter: (item: ValueFormatterParams<TreeItemForAgGrid>) =>
-      item.node?.rowIndex
-        ? item.node.rowIndex + 1
-        : ''
+      item.node?.rowIndex ? String(item.node.rowIndex + 1) : '',
   },
   {
     field: 'category',

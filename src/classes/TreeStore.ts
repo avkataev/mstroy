@@ -16,39 +16,11 @@ export interface TreeItemForAgGrid extends TreeItem {
 
 export class TreeStore {
   private _store: TreeItem[]
-  private _tree = []
-  private _buildTree() {
-
-    const nodes = new Map();
-    const roots = [];
-
-    for (const item of this._store) {
-      nodes.set(item.id, { ...item, children: [] });
-    }
-    for (const item of this._store) {
-      const node = nodes.get(item.id);
-
-      if (item.parent == null) {
-        roots.push(node);
-      } else {
-        const parent = nodes.get(item.parent);
-        if (parent) {
-          parent.children.push(node);
-        }
-      }
-    }
-
-    this._tree = roots
-  }
   constructor(private treeStore: TreeItem[]) {
     this._store = [...treeStore]
-    this._buildTree()
   }
   public getAll(): TreeItem[] {
     return this._store
-  }
-  public getTree(): TreeItem[] {
-    return this._tree
   }
   public getItem(id: TreeItemId): TreeItem | null {
     return this._store.find(item => item.id === id) || null
@@ -58,9 +30,10 @@ export class TreeStore {
     return this._store.filter(item => item.parent === id)
   }
   public getAllChildren(id: TreeItemId): TreeItem[] {
+    // TODO
     return this._store.filter(item => item.parent === id)
   }
-  public getAllParents(id: TreeItemId) {
+  public getAllParents(id: TreeItemId): TreeItem[] {
     const result: TreeItem[] = []
     const addChild = (id: TreeItemId) => {
       const currentItem: TreeItem | null = this.getItem(id)
@@ -83,7 +56,17 @@ export class TreeStore {
       }
     })
   }
-  public addItem(item: TreeItem) {}
-  public removeItem(id: TreeItemId) {}
-  public updateItem(item: TreeItem) {}
+  public addItem(item: TreeItem): void {
+    this._store.push(item)
+  }
+  public removeItem(id: TreeItemId): void {
+    this._store.filter(item => item.id !== id)
+  }
+  public updateItem(item: TreeItem): void {
+    const currentItem = this._store.find(item => item.id === item.id)
+    if (currentItem) {
+      currentItem.parent = item.parent
+      currentItem.label = item.label
+    }
+  }
 }

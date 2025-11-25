@@ -60,7 +60,7 @@ export class TreeStore {
     this._store.push(item)
   }
   public removeItem(id: TreeItemId): void {
-    this._store.filter(item => item.id !== id)
+    this._store = this._store.filter(item => item.id !== id)
   }
   public updateItem(item: TreeItem): void {
     const currentItem = this._store.find(item => item.id === item.id)

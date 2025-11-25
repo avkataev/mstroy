@@ -1,4 +1,8 @@
 type TreeItemId = number | string;
+export enum TreeItemCategory {
+  GROUP = 'Группа',
+  ELEMENT = 'Элемент',
+}
 
 export interface TreeItem {
   id: TreeItemId
@@ -7,6 +11,7 @@ export interface TreeItem {
 }
 export interface TreeItemForAgGrid extends TreeItem {
   path: string[]
+  category: TreeItemCategory
 }
 
 export class TreeStore {
@@ -17,32 +22,23 @@ export class TreeStore {
     const nodes = new Map();
     const roots = [];
 
-    // Создаем узлы
     for (const item of this._store) {
       nodes.set(item.id, { ...item, children: [] });
     }
-
-    // Формируем дерево
     for (const item of this._store) {
       const node = nodes.get(item.id);
 
       if (item.parent == null) {
-        // Корневой элемент
         roots.push(node);
       } else {
-        // Добавляем в родителя
         const parent = nodes.get(item.parent);
         if (parent) {
           parent.children.push(node);
-        } else {
-          // Опционально: можно игнорировать или создавать "пустого" родителя
-          // roots.push(node); // если нужно выбрасывать в корень при отсутствии родителя
         }
       }
     }
 
     this._tree = roots
-
   }
   constructor(private treeStore: TreeItem[]) {
     this._store = [...treeStore]
@@ -76,13 +72,16 @@ export class TreeStore {
     return result
   }
 
-  public getArr() {
+  public getArr(): TreeItemForAgGrid[] {
     return this._store.map((item: TreeItem) => {
       return {
         ...item,
         path: this.getAllParents(item.id).map(item => item.label).reverse(),
+        category: this.getChildren(item.id).length
+          ? TreeItemCategory.GROUP
+          : TreeItemCategory.ELEMENT,
       }
-    }) satisfies (TreeItem & { path: string[] })[]
+    })
   }
   public addItem(item: TreeItem) {}
   public removeItem(id: TreeItemId) {}

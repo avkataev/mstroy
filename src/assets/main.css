@@ -1,1 +1,16 @@
 @import './base.css';
+
+.main {
+  background: #f3f2f1;
+  padding: 20px;
+}
+
+.caption {
+  color: #2d82dd;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.font-bold {
+  font-weight: bold !important;
+}

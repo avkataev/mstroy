@@ -15,44 +15,67 @@ export interface TreeItemForAgGrid extends TreeItem {
 }
 
 export class TreeStore {
-  private _store: TreeItem[]
+  private _map: Map<TreeItemId, TreeItem>
+  private _children: Map<TreeItemId, TreeItem[]>
   constructor(treeStore: TreeItem[]) {
-    this._store = [...treeStore]
+    this._map = new Map()
+    this._children = new Map()
+
+    for (const item of treeStore) {
+      this._map.set(item.id, item)
+      if (item.parent !== null) {
+        if (!this._children.has(item.parent)) {
+          this._children.set(item.parent, [])
+        }
+        this._children.get(item.parent)!.push(item)
+      }
+    }
+  }
+  private _buildChildren() {
+    this._children.clear()
+    for (const item of this._map.values()) {
+      if (item.parent !== null) {
+        if (!this._children.has(item.parent)) {
+          this._children.set(item.parent, [])
+        }
+        this._children.get(item.parent)!.push(item)
+      }
+    }
   }
   public getAll(): TreeItem[] {
-    return this._store
+    return [...this._map.values()]
   }
   public getItem(id: TreeItemId): TreeItem | null {
-    return this._store.find(item => item.id === id) || null
+    return this._map.get(id) || null
   }
-  public getChildren(id: TreeItemId | undefined): TreeItem[] {
-    if (id === undefined) return []
-    return this._store.filter(item => item.parent === id)
+  public getChildren(id: TreeItemId): TreeItem[] {
+    return this._children.get(id) || []
   }
   public getAllChildren(id: TreeItemId): TreeItem[] {
-    const checkChildren = (items: TreeItem[]) => {
-      let result = items
-      items.forEach(item => {
-        result = result.concat(checkChildren(this.getChildren(item.id)))
-      })
-      return result
+    const result: TreeItem[] = []
+    const arr: TreeItem[] = this.getChildren(id)
+    while (arr.length) {
+      const item = arr.shift()
+      if (item) {
+        result.push(item)
+        arr.push(...this.getChildren(item.id))
+      }
     }
-    return checkChildren(this.getChildren(id))
+    return result
   }
   public getAllParents(id: TreeItemId): TreeItem[] {
     const result: TreeItem[] = []
-    const addChild = (id: TreeItemId) => {
-      const currentItem: TreeItem | null = this.getItem(id)
-      if (!currentItem) return
+    let currentItem = this.getItem(id)
+    while (currentItem) {
       result.push(currentItem)
-      if (currentItem.parent) addChild(currentItem.parent)
+      if (currentItem.parent === null) break
+      currentItem = this.getItem(currentItem.parent)
     }
-    addChild(id)
     return result
   }
 
-  public getArr(): TreeItemForAgGrid[] {
-    return this._store.map((item: TreeItem) => {
+  public getAgGridFormat(): TreeItemForAgGrid[] {
+    return this.getAll().map((item: TreeItem) => {
       return {
         ...item,
         path: this.getAllParents(item.id).map(item => item.label).reverse(),
@@ -63,16 +86,15 @@ export class TreeStore {
     })
   }
   public addItem(item: TreeItem): void {
-    this._store.push(item)
+    this._map.set(item.id, item)
+    this._buildChildren()
   }
   public removeItem(id: TreeItemId): void {
-    this._store = this._store.filter(item => item.id !== id)
+    this._map.delete(id)
+    this._buildChildren()
   }
   public updateItem(item: TreeItem): void {
-    const currentItem = this._store.find(i => i.id === item.id)
-    if (currentItem) {
-      currentItem.parent = item.parent
-      currentItem.label = item.label
-    }
+    this._map.set(item.id, item)
+    this._buildChildren()
   }
 }

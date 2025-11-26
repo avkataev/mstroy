@@ -33,8 +33,7 @@ const items: TreeItem[] = [
   { id: 8, parent: 4, label: 'Айтем 8' },
 ]
 const itemsInit = new TreeStore(items)
-rowData.value = itemsInit.getArr()
-console.log('getTree', itemsInit.getArr())
+rowData.value = itemsInit.getAgGridFormat()
 const colDefs = ref<ColDef<TreeItemForAgGrid>[]>([
   {
     field: 'id',

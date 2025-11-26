@@ -16,7 +16,7 @@ export interface TreeItemForAgGrid extends TreeItem {
 
 export class TreeStore {
   private _store: TreeItem[]
-  constructor(private treeStore: TreeItem[]) {
+  constructor(treeStore: TreeItem[]) {
     this._store = [...treeStore]
   }
   public getAll(): TreeItem[] {
@@ -30,8 +30,14 @@ export class TreeStore {
     return this._store.filter(item => item.parent === id)
   }
   public getAllChildren(id: TreeItemId): TreeItem[] {
-    // TODO
-    return this._store.filter(item => item.parent === id)
+    const checkChildren = (items: TreeItem[]) => {
+      let result = items
+      items.forEach(item => {
+        result = result.concat(checkChildren(this.getChildren(item.id)))
+      })
+      return result
+    }
+    return checkChildren(this.getChildren(id))
   }
   public getAllParents(id: TreeItemId): TreeItem[] {
     const result: TreeItem[] = []
@@ -63,7 +69,7 @@ export class TreeStore {
     this._store = this._store.filter(item => item.id !== id)
   }
   public updateItem(item: TreeItem): void {
-    const currentItem = this._store.find(item => item.id === item.id)
+    const currentItem = this._store.find(i => i.id === item.id)
     if (currentItem) {
       currentItem.parent = item.parent
       currentItem.label = item.label
